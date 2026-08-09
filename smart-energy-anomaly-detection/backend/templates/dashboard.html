@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Smart Energy Monitoring Dashboard</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f7fb;
+        color: #1f2937;
+    }
+
+    .navbar {
+        background: #111827;
+        color: white;
+        padding: 18px 30px;
+    }
+
+    .navbar-content {
+        max-width: 1200px;
+        margin: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .navbar h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #22c55e;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 35px auto;
+        padding: 0 20px;
+    }
+
+    .header {
+        margin-bottom: 30px;
+    }
+
+    .header h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        color: #111827;
+    }
+
+    .header p {
+        margin: 0;
+        color: #6b7280;
+    }
+
+    /* Statistics */
+
+    .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .stat-card h3 {
+        margin: 0 0 12px;
+        font-size: 15px;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .value {
+        font-size: 30px;
+        font-weight: bold;
+        color: #111827;
+    }
+
+    /* Charts */
+
+    .charts {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        height: 380px;
+    }
+
+    .chart-title {
+        margin: 0 0 20px;
+        font-size: 18px;
+        color: #111827;
+    }
+
+    /* Alerts */
+
+    .alerts {
+        background: white;
+        margin-top: 30px;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .alerts h2 {
+        margin-top: 0;
+        font-size: 20px;
+    }
+
+    .alert-item {
+        padding: 15px;
+        margin-bottom: 12px;
+        border-left: 5px solid #f59e0b;
+        background: #fffbeb;
+        border-radius: 6px;
+    }
+
+    .alert-item.high {
+        border-left-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    .alert-type {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .alert-description {
+        margin: 5px 0;
+        color: #4b5563;
+    }
+
+    .alert-time {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .no-alerts {
+        color: #6b7280;
+        padding: 10px 0;
+    }
+
+    /* Recent measurements */
+
+    .measurements {
+        background: white;
+        margin-top: 30px;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        overflow-x: auto;
+    }
+
+    .measurements h2 {
+        margin-top: 0;
+        font-size: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+        background: #f9fafb;
+        color: #4b5563;
+        font-size: 13px;
+    }
+
+    td {
+        font-size: 14px;
+    }
+
+    /* Footer */
+
+    footer {
+        text-align: center;
+        padding: 30px;
+        margin-top: 40px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    /* Responsive design */
+
+    @media (max-width: 900px) {
+        .stats {
+            grid-template-columns: 1fr;
+        }
+
+        .navbar-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .container {
+            margin-top: 25px;
+        }
+
+        .header h1 {
+            font-size: 25px;
+        }
+
+        .stat-card {
+            padding: 20px;
+        }
+
+        .chart-container {
+            height: 320px;
+            padding: 15px;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="navbar-content">
+
+        <h2>⚡ Smart Energy Monitor</h2>
+
+        <div class="status">
+            <span class="status-dot"></span>
+            System Online
+        </div>
+
+    </div>
+</nav>
+
+
+<!-- Main Content -->
+<main class="container">
+
+    <!-- Page Header -->
+    <section class="header">
+
+        <h1>Energy Monitoring Dashboard</h1>
+
+        <p>
+            Real-time electrical energy monitoring and anomaly detection.
+        </p>
+
+    </section>
+
+
+    <!-- Statistics -->
+    <section class="stats">
+
+        <div class="stat-card">
+
+            <h3>Average Power</h3>
+
+            <div class="value">
+                {{ "%.2f"|format(stats.avg_power|default(0)) }} W
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3>Peak Power</h3>
+
+            <div class="value">
+                {{ "%.2f"|format(stats.max_power|default(0)) }} W
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <h3>Average Voltage</h3>
+
+            <div class="value">
+                {{ "%.1f"|format(stats.avg_voltage|default(0)) }} V
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Charts -->
+    <section class="charts">
+
+        <!-- Power Chart -->
+        <div class="chart-container">
+
+            <h2 class="chart-title">
+                Power Consumption Over Time
+            </h2>
+
+            <canvas id="powerChart"></canvas>
+
+        </div>
+
+
+        <!-- Voltage Chart -->
+        <div class="chart-container">
+
+            <h2 class="chart-title">
+                Voltage Over Time
+            </h2>
+
+            <canvas id="voltageChart"></canvas>
+
+        </div>
+
+    </section>
+
+
+    <!-- Alerts -->
+    <section class="alerts">
+
+        <h2>⚠️ Recent Alerts</h2>
+
+        {% if alerts %}
+
+            {% for alert in alerts %}
+
+                <div
+                    class="alert-item
+                    {% if alert.severity == 'HIGH' %}
+                        high
+                    {% endif %}"
+                >
+
+                    <div class="alert-type">
+
+                        {{ alert.alert_type }}
+
+                        —
+                        {{ alert.severity }}
+
+                    </div>
+
+                    <div class="alert-description">
+
+                        {{ alert.description }}
+
+                    </div>
+
+                    <div class="alert-time">
+
+                        {{ alert.timestamp }}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="no-alerts">
+
+                No recent anomalies or alerts detected.
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- Recent Measurements -->
+    <section class="measurements">
+
+        <h2>Recent Measurements</h2>
+
+        {% if measurements %}
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Voltage (V)</th>
+                        <th>Current (A)</th>
+                        <th>Power (W)</th>
+                        <th>Energy (kWh)</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for measurement in measurements[-20:] %}
+
+                        <tr>
+
+                            <td>
+                                {{ measurement.timestamp }}
+                            </td>
+
+                            <td>
+                                {{ "%.2f"|format(
+                                    measurement.get('voltage', 0)
+                                ) }}
+                            </td>
+
+                            <td>
+                                {{ "%.2f"|format(
+                                    measurement.get('current', 0)
+                                ) }}
+                            </td>
+
+                            <td>
+                                {{ "%.2f"|format(
+                                    measurement.get('power', 0)
+                                ) }}
+                            </td>
+
+                            <td>
+                                {{ "%.4f"|format(
+                                    measurement.get('energy', 0)
+                                ) }}
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        {% else %}
+
+            <p class="no-alerts">
+                No energy measurements available yet.
+            </p>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+
+<!-- Footer -->
+<footer>
+
+    Smart Energy Monitoring & ML Anomaly Detection
+
+    <br>
+
+    Built with ESP32, Python, Flask, Firebase and Machine Learning
+
+</footer>
+
+
+<!-- Dashboard JavaScript -->
+<script>
+
+    /*
+     * Fetch the latest energy measurements
+     * from the Flask API.
+     */
+
+    fetch("/api/data")
+
+        .then(response => {
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to retrieve energy data."
+                );
+
+            }
+
+            return response.json();
+
+        })
+
+        .then(data => {
+
+            /*
+             * Extract timestamps.
+             */
+
+            const labels = data.map(
+                measurement => measurement.timestamp
+            );
+
+
+            /*
+             * Extract power values.
+             */
+
+            const powers = data.map(
+                measurement =>
+                    Number(measurement.power || 0)
+            );
+
+
+            /*
+             * Extract voltage values.
+             */
+
+            const voltages = data.map(
+                measurement =>
+                    Number(measurement.voltage || 0)
+            );
+
+
+            /*
+             * Power Chart
+             */
+
+            const powerCanvas =
+                document.getElementById(
+                    "powerChart"
+                );
+
+            new Chart(powerCanvas, {
+
+                type: "line",
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+
+                            label: "Power (W)",
+
+                            data: powers,
+
+                            borderColor: "#2563eb",
+
+                            backgroundColor:
+                                "rgba(37, 99, 235, 0.10)",
+
+                            borderWidth: 2,
+
+                            fill: true,
+
+                            tension: 0.35,
+
+                            pointRadius: 2
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    interaction: {
+
+                        intersect: false,
+
+                        mode: "index"
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+
+                            display: true
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        x: {
+
+                            title: {
+
+                                display: true,
+
+                                text: "Time"
+
+                            }
+
+                        },
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            title: {
+
+                                display: true,
+
+                                text: "Power (W)"
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+
+            /*
+             * Voltage Chart
+             */
+
+            const voltageCanvas =
+                document.getElementById(
+                    "voltageChart"
+                );
+
+            new Chart(voltageCanvas, {
+
+                type: "line",
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+
+                            label: "Voltage (V)",
+
+                            data: voltages,
+
+                            borderColor: "#f59e0b",
+
+                            backgroundColor:
+                                "rgba(245, 158, 11, 0.10)",
+
+                            borderWidth: 2,
+
+                            fill: true,
+
+                            tension: 0.35,
+
+                            pointRadius: 2
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    interaction: {
+
+                        intersect: false,
+
+                        mode: "index"
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+
+                            display: true
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        x: {
+
+                            title: {
+
+                                display: true,
+
+                                text: "Time"
+
+                            }
+
+                        },
+
+                        y: {
+
+                            beginAtZero: false,
+
+                            title: {
+
+                                display: true,
+
+                                text: "Voltage (V)"
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "Dashboard data error:",
+                error
+            );
+
+        });
+
+</script>
+```
+
+</body>
+</html>
